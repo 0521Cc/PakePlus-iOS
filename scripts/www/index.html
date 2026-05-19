@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="请假条">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>请假条详情</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#000;color:#fff;overflow:hidden}
+#app{height:100%;position:relative;overflow:hidden}
+.page{position:absolute;top:0;left:0;width:100%;height:100%;background:#000;z-index:1;opacity:0;pointer-events:none;transition:opacity .25s ease}
+.page.active{opacity:1;pointer-events:auto;z-index:2}
+.page-content{height:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:40px}
+.navbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;height:44px;padding:0 12px;background:#000}
+.nav-back{display:flex;align-items:center;gap:4px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;padding:8px 4px}
+.nav-back svg{width:22px;height:22px;fill:#fff}
+.nav-title{flex:1;text-align:center;font-size:17px;font-weight:500}
+.nav-actions{display:flex;align-items:center;gap:4px}
+.nav-btn{background:none;border:none;color:#fff;padding:8px;cursor:pointer;display:flex;align-items:center}
+.nav-btn svg{width:22px;height:22px;fill:#fff}
+.nav-close{color:#576B95;font-size:15px;background:none;border:none;padding:8px;cursor:pointer}
+.applicant-card{display:flex;align-items:center;padding:16px;margin:10px 12px;background:#1a1a1a;border-radius:12px}
+.applicant-avatar{width:46px;height:46px;border-radius:10px;overflow:hidden;margin-right:12px;flex-shrink:0}
+.applicant-avatar img{width:100%;height:100%;object-fit:cover}
+.applicant-info{flex:1;min-width:0}
+.applicant-name{font-size:17px;font-weight:600;display:block}
+.doc-type{font-size:14px;color:#999;display:block;margin-top:2px}
+.status-tag{padding:3px 10px;border-radius:4px;font-size:12px;font-weight:500;flex-shrink:0;margin-left:8px}
+.status-tag.pass{background:rgba(7,193,96,.15);color:#07C160}
+.detail-card{background:#1a1a1a;margin:10px 12px;border-radius:12px;overflow:hidden}
+.form-row{display:flex;align-items:flex-start;padding:13px 16px;min-height:44px}
+.form-row+.form-row{border-top:1px solid rgba(255,255,255,.06)}
+.form-label{width:80px;flex-shrink:0;color:#999;font-size:15px;line-height:22px}
+.form-value{flex:1;font-size:15px;line-height:22px;word-break:break-all}
+.form-value.link{color:#576B95;cursor:pointer}
+.row-arrow{width:16px;height:16px;fill:#666;margin-left:4px;margin-top:3px;flex-shrink:0}
+.dest-card{background:#1a1a1a;margin:10px 12px;border-radius:12px;overflow:hidden}
+.dest-header{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.dest-label{font-size:15px;color:#576B95}
+.dest-body{padding:13px 16px;font-size:15px;line-height:22px}
+.remark-card{background:#1a1a1a;margin:10px 12px;border-radius:12px;overflow:hidden}
+.remark-header{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.remark-body{padding:13px 16px;font-size:15px;line-height:22px;color:#ccc}
+.attach-card{background:#1a1a1a;margin:10px 12px;border-radius:12px;overflow:hidden}
+.attach-header{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.attach-item{display:flex;align-items:center;padding:12px 16px;cursor:pointer}
+.attach-thumb{width:48px;height:48px;border-radius:8px;overflow:hidden;margin-right:12px;background:#222;flex-shrink:0}
+.attach-thumb img{width:100%;height:100%;object-fit:cover}
+.attach-name{font-size:15px;display:block}
+.attach-size{font-size:12px;color:#999;display:block;margin-top:3px}
+.approval-card{background:#1a1a1a;margin:10px 12px;border-radius:12px;overflow:hidden}
+.approval-header{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.approval-header .form-label{color:#576B95}
+.approval-header .form-value{color:#07C160}
+.approval-step{padding:0 16px 16px}
+.approver-row{display:flex;align-items:center;padding:12px;background:#222;border-radius:10px;cursor:pointer;margin-bottom:10px}
+.approver-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;margin-right:12px;flex-shrink:0}
+.approver-avatar img{width:100%;height:100%;object-fit:cover}
+.approver-info{flex:1;min-width:0}
+.approver-name{font-size:15px;font-weight:500;display:block}
+.approver-status{font-size:12px;color:#999;display:block;margin-top:2px}
+.approver-badge{width:22px;height:22px;border-radius:50%;background:#576B95;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.signature-row{display:flex;align-items:center;padding:10px 12px;background:#222;border-radius:10px}
+.signature-label{font-size:15px;color:#999;margin-right:8px;flex-shrink:0}
+.signature-img{max-width:140px;max-height:44px;object-fit:contain}
+.cc-block{padding:0 16px 4px}
+.cc-title{padding:10px 0;font-size:15px}
+.cc-title .cc-status{color:#07C160;font-size:15px}
+.cc-member{display:flex;align-items:center;padding:10px 12px;background:#222;border-radius:10px;cursor:pointer;margin-bottom:8px}
+.cc-avatar{width:32px;height:32px;border-radius:50%;overflow:hidden;margin-right:10px;flex-shrink:0}
+.cc-avatar img{width:100%;height:100%;object-fit:cover}
+.cc-name{font-size:14px;font-weight:500}
+.cc-status{margin-left:auto;font-size:12px;color:#999;flex-shrink:0}
+.add-remark{display:flex;align-items:center;justify-content:center;padding:14px;margin:10px 12px;background:#1a1a1a;border-radius:12px;cursor:pointer;color:#576B95;font-size:15px;gap:6px}
+.add-remark svg{width:20px;height:20px;fill:#576B95}
+.bottom-btns{display:flex;gap:10px;padding:16px;margin:10px 12px;background:#1a1a1a;border-radius:12px}
+.btn{flex:1;padding:11px 0;border-radius:8px;border:none;font-size:15px;font-weight:500;cursor:pointer;text-align:center}
+.btn-primary{background:#576B95;color:#fff}
+.btn-secondary{background:#333;color:#fff}
+.profile-card{display:flex;flex-direction:column;align-items:center;padding:28px 20px 20px;margin:10px 12px;background:#1a1a1a;border-radius:12px}
+.profile-avatar{width:76px;height:76px;border-radius:50%;overflow:hidden;margin-bottom:14px}
+.profile-avatar img{width:100%;height:100%;object-fit:cover}
+.profile-name-row{display:flex;align-items:center;gap:6px;margin-bottom:14px}
+.profile-name{font-size:20px;font-weight:600}
+.gender-tag{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.gender-tag.f{background:#FF6B9D}
+.profile-actions{display:flex;gap:10px}
+.profile-action-btn{display:flex;align-items:center;gap:5px;padding:7px 12px;background:#222;border-radius:8px;border:none;color:#fff;font-size:13px;cursor:pointer}
+.profile-action-btn svg{width:16px;height:16px;fill:#999}
+.profile-info{background:#1a1a1a;margin:10px 12px;border-radius:12px;overflow:hidden}
+.profile-row{display:flex;align-items:center;padding:13px 16px;min-height:44px}
+.profile-row+.profile-row{border-top:1px solid rgba(255,255,255,.06)}
+.profile-row .form-label{width:110px}
+.profile-row .form-value{flex:1}
+.profile-row .form-value.link{color:#576B95;cursor:pointer}
+.profile-sub{display:block;font-size:12px;color:#666;margin-top:2px;line-height:18px}
+.verified{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#07C160;color:#fff;font-size:10px;margin-left:4px;vertical-align:middle}
+.profile-bottom{display:flex;gap:8px;padding:16px;margin:10px 12px}
+.profile-bottom .btn{padding:10px 0}
+.ent-card{padding:18px 16px;margin:10px 12px;background:#1a1a1a;border-radius:12px}
+.ent-name-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.ent-account{font-size:17px;color:#FF9500;font-weight:500}
+.ent-badge{padding:2px 8px;border-radius:4px;background:rgba(7,193,96,.15);color:#07C160;font-size:12px}
+.ent-fullname{font-size:14px;color:#999}
+.ent-info{background:#1a1a1a;margin:10px 12px;border-radius:12px;overflow:hidden}
+.ent-pending{background:#1a1a1a;margin:10px 12px;border-radius:12px;overflow:hidden}
+.pending-row{display:flex;align-items:center;padding:13px 16px;min-height:44px;cursor:pointer}
+.pending-row+.pending-row{border-top:1px solid rgba(255,255,255,.06)}
+.pending-label{width:90px;flex-shrink:0;color:#999;font-size:15px}
+.pending-value{flex:1;font-size:14px;color:#555}
+.ent-notice{display:flex;align-items:center;gap:8px;padding:14px;margin:10px 12px;background:rgba(87,107,149,.1);border-radius:12px;flex-wrap:wrap}
+.ent-notice svg{width:20px;height:20px;fill:#576B95;flex-shrink:0}
+.ent-notice span{flex:1;font-size:13px;color:#576B95;line-height:20px}
+.ent-notice-btn{padding:7px 14px;background:#576B95;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;flex-shrink:0}
+.breadcrumb{display:flex;align-items:center;padding:10px 16px;background:#1a1a1a;font-size:13px;flex-wrap:wrap;margin:10px 12px;border-radius:12px 12px 0 0}
+.bc-item{color:#999}
+.bc-item.current{color:#576B95}
+.bc-sep{margin:0 5px;color:#555}
+.member-section-title{padding:6px 16px;background:#1a1a1a;font-size:13px;color:#999;position:sticky;top:0;z-index:5}
+.member-item{display:flex;align-items:center;padding:11px 16px;background:#1a1a1a;cursor:pointer}
+.member-item+.member-item{border-top:1px solid rgba(255,255,255,.06)}
+.member-item:active{background:#222}
+.member-av{width:40px;height:40px;border-radius:50%;overflow:hidden;margin-right:12px;flex-shrink:0;background:#222}
+.member-av img{width:100%;height:100%;object-fit:cover}
+.member-nm{font-size:15px}
+.alphabet-bar{position:fixed;right:2px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:1px;z-index:50}
+.alphabet-bar span{width:18px;height:15px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#576B95;cursor:pointer;border-radius:3px}
+.alphabet-bar span:active{background:#576B95;color:#fff}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="page-detail" class="page active">
+<div class="page-content">
+<header class="navbar"><button class="nav-back" onclick="goBack()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><span class="nav-title">请假条（学生）详情</span><div class="nav-actions"><button class="nav-btn"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></button><button class="nav-btn"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg></button></div></header>
+<div class="applicant-card"><div class="applicant-avatar"><img src="images/avatar-chen.svg" alt="陈胜源"></div><div class="applicant-info"><span class="applicant-name">陈胜源</span><span class="doc-type">的请假条（学生）</span></div><span class="status-tag pass">已通过</span></div>
+<div class="detail-card">
+<div class="form-row"><span class="form-label">审批编号</span><span class="form-value">202605030521</span></div>
+<div class="form-row"><span class="form-label">提交时间</span><span class="form-value">2026/5/19 19:41</span></div>
+<div class="form-row" role="button" tabindex="0" onclick="navigateTo('department')" style="cursor:pointer"><span class="form-label">所在部门</span><span class="form-value link">2025级电子商务2班</span><svg class="row-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+<div class="form-row"><span class="form-label">寝室号</span><span class="form-value">5#608</span></div>
+<div class="form-row"><span class="form-label">事由</span><span class="form-value">家中有事</span></div>
+<div class="form-row"><span class="form-label">开始时间</span><span class="form-value">2026/5/20 上午</span></div>
+<div class="form-row"><span class="form-label">结束时间</span><span class="form-value">2026/5/22 上午</span></div>
+<div class="form-row"><span class="form-label">时长</span><span class="form-value">2.5天</span></div>
+</div>
+<div class="dest-card"><div class="dest-header"><span class="dest-label">去向</span></div><div class="dest-body">郑州站</div></div>
+<div class="remark-card"><div class="remark-header"><span class="form-label">备注</span></div><div class="remark-body">回家一趟2天</div></div>
+<div class="attach-card"><div class="attach-header"><span class="form-label">附件</span></div><div class="attach-item"><div class="attach-thumb"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23222' width='100' height='100'/%3E%3Ctext x='50' y='58' text-anchor='middle' fill='%23666' font-size='28'%3EJPG%3C/text%3E%3C/svg%3E" alt=""></div><div><span class="attach-name">1777808424805.jpg</span><span class="attach-size">114.99KB</span></div></div></div>
+<div class="approval-card">
+<div class="form-row approval-header"><span class="form-label">审批流程</span><span class="form-value">· 已同意</span></div>
+<div class="approval-step">
+<div class="approver-row" onclick="navigateTo('wangjunya')"><div class="approver-avatar"><img src="images/avatar-wang.jpg" alt="王俊雅"></div><div class="approver-info"><span class="approver-name">王俊雅</span><span class="approver-status">已同意 · 5/20 9:02</span></div><div class="approver-badge">1</div></div>
+<div class="signature-row"><span class="signature-label">签名：</span><img src="images/signature.jpg" alt="签名" class="signature-img"></div>
+</div>
+<div class="cc-block"><div class="cc-title">抄送人 <span class="cc-status">· 已抄送</span></div><div class="cc-member" onclick="navigateTo('wangjunya')"><div class="cc-avatar"><img src="images/avatar-wang.jpg" alt="王俊雅"></div><span class="cc-name">王俊雅</span><span class="cc-status">已抄送 · 5/20 9:02</span></div></div>
+<div class="cc-block" style="padding-top:0"><div class="cc-title">抄送人 <span class="cc-status">· 已抄送</span></div><div class="cc-member" onclick="navigateTo('chenshengyuan')"><div class="cc-avatar"><img src="images/avatar-chen.svg" alt="陈胜源"></div><span class="cc-name">陈胜源</span><span class="cc-status">已抄送 · 5/20 9:02</span></div><div class="cc-member" onclick="navigateTo('liyuxuan')"><div class="cc-avatar"><img src="images/avatar-li.svg" alt="李玉萱"></div><span class="cc-name">李玉萱</span><span class="cc-status">已抄送 · 5/20 9:02</span></div></div>
+</div>
+<div class="add-remark" onclick="alert('添加备注')"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span>添加备注</span></div>
+<div class="bottom-btns"><button class="btn btn-secondary">再次提交</button><button class="btn btn-primary">发起讨论</button></div>
+</div>
+</div>
+<div id="page-wangjunya" class="page"><div class="page-content"><header class="navbar"><button class="nav-close" onclick="goBack()">关闭</button><span class="nav-title">个人信息</span><button class="nav-btn"><svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></button></header><div class="profile-card"><div class="profile-avatar"><img src="images/avatar-wang.jpg" alt="王俊雅"></div><div class="profile-name-row"><span class="profile-name">王俊雅</span><span class="gender-tag f">♀</span></div><div class="profile-actions"><button class="profile-action-btn"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>查看往来邮件</button><button class="profile-action-btn"><svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>查看日程</button></div></div><div class="profile-info"><div class="profile-row"><span class="form-label">设置备注和描述</span><svg class="row-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div><div class="profile-row"><span class="form-label">手机</span><span class="form-value link">15194611511</span></div><div class="profile-row" role="button" tabindex="0" onclick="navigateTo('department')" style="cursor:pointer"><span class="form-label">部门</span><div class="form-value"><span class="link">2025级电子商务2班</span><span class="profile-sub">郑州信息工程职业学院/学生/商学院学生/商学院2025级</span></div><svg class="row-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div><div class="profile-row" role="button" tabindex="0" onclick="navigateTo('enterprise')" style="cursor:pointer"><span class="form-label">企业</span><div class="form-value"><span class="link">郑州信息工程职业学院</span><span class="verified">✓</span></div><svg class="row-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div></div><div class="profile-bottom"><button class="btn btn-primary">发消息</button><button class="btn btn-secondary">写邮件</button><button class="btn btn-secondary">语音通话</button></div></div></div>
+<div id="page-liyuxuan" class="page"><div class="page-content"><header class="navbar"><button class="nav-close" onclick="goBack()">关闭</button><span class="nav-title">个人信息</span><button class="nav-btn"><svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></button></header><div class="profile-card"><div class="profile-avatar"><img src="images/avatar-li.svg" alt="李玉萱"></div><div class="profile-name-row"><span class="profile-name">李玉萱</span><span class="gender-tag f">♀</span></div><div class="profile-actions"><button class="profile-action-btn"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>查看往来邮件</button><button class="profile-action-btn"><svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>查看日程</button></div></div><div class="profile-info"><div class="profile-row"><span class="form-label">设置备注和描述</span><svg class="row-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div><div class="profile-row"><span class="form-label">手机</span><span class="form-value link">15346277764</span></div><div class="profile-row" role="button" tabindex="0" onclick="navigateTo('department')" style="cursor:pointer"><span class="form-label">部门</span><div class="form-value"><span class="link">2025级电子商务2班</span><span class="profile-sub">郑州信息工程职业学院/学生/商学院学生/商学院2025级</span></div><svg class="row-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div><div class="profile-row" role="button" tabindex="0" onclick="navigateTo('enterprise')" style="cursor:pointer"><span class="form-label">企业</span><div class="form-value"><span class="link">郑州信息工程职业学院</span><span class="verified">✓</span></div><svg class="row-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div></div><div class="profile-bottom"><button class="btn btn-primary">发消息</button><button class="btn btn-secondary">写邮件</button><button class="btn btn-secondary">语音通话</button></div></div></div>
+<div id="page-chenshengyuan" class="page"><div class="page-content"><header class="navbar"><button class="nav-close" onclick="goBack()">关闭</button><span class="nav-title">个人信息</span><button class="nav-btn"><svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></button></header><div class="profile-card"><div class="profile-avatar"><img src="images/avatar-chen.svg" alt="陈胜源"></div><div class="profile-name-row"><span class="profile-name">陈胜源</span><span class="gender-tag" style="background:#576B95">♂</span></div><div class="profile-actions"><button class="profile-action-btn"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>查看往来邮件</button><button class="profile-action-btn"><svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>查看日程</button></div></div><div class="profile-info"><div class="profile-row"><span class="form-label">设置备注和描述</span><svg class="row-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div><div class="profile-row"><span class="form-label">手机</span><span class="form-value link">—</span></div><div class="profile-row" role="button" tabindex="0" onclick="navigateTo('department')" style="cursor:pointer"><span class="form-label">部门</span><div class="form-value"><span class="link">2025级电子商务2班</span><span class="profile-sub">郑州信息工程职业学院/学生/商学院学生/商学院2025级</span></div><svg class="row-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div><div class="profile-row" role="button" tabindex="0" onclick="navigateTo('enterprise')" style="cursor:pointer"><span class="form-label">企业</span><div class="form-value"><span class="link">郑州信息工程职业学院</span><span class="verified">✓</span></div><svg class="row-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div></div><div class="profile-bottom"><button class="btn btn-primary">发消息</button><button class="btn btn-secondary">写邮件</button><button class="btn btn-secondary">语音通话</button></div></div></div>
+<div id="page-enterprise" class="page"><div class="page-content"><header class="navbar"><button class="nav-back" onclick="goBack()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><span class="nav-title">企业信息</span><div class="nav-actions"><button class="nav-btn"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button><button class="nav-btn"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg></button></div></header><div class="ent-card"><div class="ent-name-row"><span class="ent-account">@郑州信息工程职业学院</span><span class="ent-badge">✓ 已认证</span></div><div class="ent-fullname">郑州信息工程职业学院</div></div><div class="ent-info"><div class="profile-row"><span class="form-label">经营类目</span><span class="form-value">教育服务-学校</span></div><div class="profile-row"><span class="form-label">企业类型</span><span class="form-value">民办非企业</span></div><div class="profile-row"><span class="form-label">经营范围</span><span class="form-value">普通专科教育</span></div></div><div class="ent-pending"><div class="pending-row"><span class="pending-label">产品与服务</span><span class="pending-value">待填写企业可提供的产品/服务</span><svg class="row-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div><div class="pending-row"><span class="pending-label">典型案例</span><span class="pending-value">待填写企业合作客户的案例</span><svg class="row-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div><div class="pending-row"><span class="pending-label">荣誉资质</span><span class="pending-value">待填写企业获得的荣誉资质</span><svg class="row-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div></div><div class="ent-notice"><svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg><span>企业名片未完善，完善后可了解企业信息，还可向客户介绍企业</span><button class="ent-notice-btn">提醒企业完善</button></div></div></div>
+<div id="page-department" class="page"><div class="page-content"><header class="navbar"><button class="nav-back" onclick="goBack()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><span class="nav-title">2025级电子商务2班</span><button class="nav-close" onclick="goBack()">关闭</button></header><div class="breadcrumb"><span class="bc-item">学院学生</span><span class="bc-sep">›</span><span class="bc-item">商学院2025级</span><span class="bc-sep">›</span><span class="bc-item current">2025级电子商务2班</span></div><div id="member-list"></div><div class="alphabet-bar" id="alpha-bar"></div></div></div>
+</div>
+<script>
+var pageHistory=['detail'];
+function navigateTo(p){var c=document.querySelector('.page.active');if(c)c.classList.remove('active');var t=document.getElementById('page-'+p);if(t){t.classList.add('active');var s=t.querySelector('.page-content');if(s)s.scrollTop=0}pageHistory.push(p);if(p==='department')renderMembers();return false}
+function goBack(){if(pageHistory.length>1){pageHistory.pop();var p=pageHistory[pageHistory.length-1];var c=document.querySelector('.page.active');if(c)c.classList.remove('active');var t=document.getElementById('page-'+p);if(t)t.classList.add('active')}return false}
+var members=[{n:'王俊雅',l:'★',c:'#FF6B9D',p:'wangjunya'},{n:'蔡依婷',l:'C',c:'#576B95',p:''},{n:'程韦翔',l:'C',c:'#07C160',p:''},{n:'陈胜源',l:'C',c:'#576B95',p:'chenshengyuan'},{n:'陈威龙',l:'C',c:'#FF9500',p:''},{n:'崔文胧',l:'C',c:'#5856D6',p:''},{n:'邓国壮',l:'D',c:'#FF3B30',p:''},{n:'窦方圆',l:'D',c:'#34C759',p:''},{n:'樊博宁',l:'F',c:'#007AFF',p:''},{n:'范天伊',l:'F',c:'#FF9500',p:''},{n:'范艺恒',l:'F',c:'#5856D6',p:''},{n:'冯傲',l:'F',c:'#FF2D55',p:''},{n:'冯韦棪',l:'F',c:'#30B0C7',p:''},{n:'韩国庆',l:'H',c:'#AF52DE',p:''},{n:'胡莹莹',l:'H',c:'#FF3B30',p:''},{n:'孔露冉',l:'K',c:'#32ADE6',p:''},{n:'梁榆校',l:'L',c:'#FF9500',p:''},{n:'李广鹏',l:'L',c:'#34C759',p:''},{n:'李胜迪',l:'L',c:'#5856D6',p:''},{n:'刘静雯',l:'L',c:'#FF2D55',p:''},{n:'李文元',l:'L',c:'#007AFF',p:''},{n:'李垚鑫',l:'L',c:'#FF9500',p:''},{n:'李依临',l:'L',c:'#30B0C7',p:''},{n:'李宇航',l:'L',c:'#AF52DE',p:''},{n:'李雨鑫',l:'L',c:'#FF3B30',p:''},{n:'李玉萱',l:'L',c:'#FFB6C1',p:'liyuxuan'},{n:'李智浩',l:'L',c:'#32ADE6',p:''},{n:'马浩然',l:'M',c:'#576B95',p:''},{n:'潘梦蝶',l:'P',c:'#FF2D55',p:''},{n:'秦浩宇',l:'Q',c:'#34C759',p:''},{n:'孙浩然',l:'S',c:'#007AFF',p:''},{n:'宋雨泽',l:'S',c:'#FF9500',p:''},{n:'田雨欣',l:'T',c:'#5856D6',p:''},{n:'王思涵',l:'W',c:'#AF52DE',p:''},{n:'谢雨桐',l:'X',c:'#30B0C7',p:''},{n:'杨子涵',l:'Y',c:'#FF3B30',p:''},{n:'于梦琪',l:'Y',c:'#32ADE6',p:''},{n:'张浩然',l:'Z',c:'#576B95',p:''},{n:'赵雨欣',l:'Z',c:'#FF2D55',p:''}];
+function renderMembers(){var g={},l=[];members.forEach(function(m){if(!g[m.l]){g[m.l]=[];l.push(m.l)}g[m.l].push(m)});var h='';l.forEach(function(a){h+='<div class="member-section-title" id="letter-'+a+'">'+(a==='★'?'★':a)+'</div>';g[a].forEach(function(m){var o=m.p?' onclick="navigateTo(\''+m.p+'\')"':'';var i=m.n.charAt(0);h+='<div class="member-item"'+o+'><div class="member-av"><img src="data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="'+m.c+'" width="100" height="100"/><text x="50" y="62" text-anchor="middle" fill="#fff" font-size="38" font-family="PingFang SC,Microsoft YaHei">'+i+'</text></svg>')+'" alt="'+m.n+'"></div><span class="member-nm">'+m.n+'</span></div>'})});document.getElementById('member-list').innerHTML=h;var b='';l.forEach(function(a){if(a!=='★')b+='<span onclick="document.getElementById(\'letter-'+a+'\').scrollIntoView({behavior:\'smooth\',block:\'start\'})">'+a+'</span>'});document.getElementById('alpha-bar').innerHTML=b}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js')}
+</script>
+</body>
+</html>
